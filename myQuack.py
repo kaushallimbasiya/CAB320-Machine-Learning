@@ -11,9 +11,18 @@ You are strongly encourage to use functions of the numpy, sklearn and tensorflow
 
 You are welcome to use the pandas library if you know it.
 
-
 '''
 
+import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import svm
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+import csv
+import matplotlib.pyplot as plt
+from sklearn import metrics
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,8 +34,8 @@ def my_team():
     of triplet of the form (student_number, first_name, last_name)
     
     '''
-#    return [ (1234567, 'Ada', 'Lovelace'), (1234568, 'Grace', 'Hopper'), (1234569, 'Eva', 'Tardos') ]
-    raise NotImplementedError()
+    return [ ( 10032029, 'Kaushal Kishorbhai', 'Limbasiya' ), (9954953, 'Lucas', 'Wickham'), (8890463, 'Michael', 'Gourlay') ]
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -48,9 +57,49 @@ def prepare_dataset(dataset_path):
     @return
 	X,y
     '''
-    ##         "INSERT YOUR CODE HERE"    
-    raise NotImplementedError()
-
+    
+    def get_size ( filename ):
+        F = open ( filename, 'r' )
+        line = F.readline ()
+        array = line.split ( ',' )
+        column_number = len ( array )
+        with open ( filename ) as F:
+                for i, l in enumerate ( F ):
+                    pass
+        return i + 1, column_number
+    
+    
+    rows,columns = get_size ( dataset_path )
+    F = open( dataset_path, 'r' )
+    if ( F.mode == 'r' ):
+        numberOfAttributes = columns - 2 #ignore ID and Y label columns for learners (first 2)
+        numberOfObservations = rows
+        #create empty numpy arrays
+        X = np.zeros ( [ numberOfObservations, numberOfAttributes ] )
+        y = np.zeros ( numberOfObservations )
+        y = y.astype ( np.uint8 )
+        #read each line and store it in the array
+        for i in range ( 0, numberOfObservations ):
+            contents = F.readline ()
+            data = contents.strip ( '\n' )
+            Array = data.split ( ',' )
+            #if result is 'M' we set Y label to 1 otherwise leave it as 0
+            if ( ( Array [ 1 ] ) == 'M' ):
+                y [ i ] = 1
+            Array = np.asarray ( Array [ 2: ] )
+            X [ i ] = Array
+            
+        X = np.asarray ( X )
+        y = np.asarray ( y )
+        return X, y #return X and y
+    
+                
+                
+                
+                
+                
+                
+    
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def build_DecisionTree_classifier(X_training, y_training):
@@ -132,7 +181,8 @@ if __name__ == "__main__":
     # Call your functions here
 
     ##         "INSERT YOUR CODE HERE"    
-    raise NotImplementedError()
+    my_team()
+    #prepare_dataset()
     
 
 
