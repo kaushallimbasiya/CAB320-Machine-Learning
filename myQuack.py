@@ -12,18 +12,17 @@ You are strongly encourage to use functions of the numpy, sklearn and tensorflow
 You are welcome to use the pandas library if you know it.
 
 '''
-import time
+
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score, GridSearchCV
-from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
 import csv
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn import metrics
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -119,7 +118,7 @@ def build_DecisionTree_classifier(X_training, y_training):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def build_NearrestNeighbours_classifier(X_training, y_training):
+def build_NearrestNeighbours_classifier(X_training, y_training, numberOfNeighbors):
     '''  
     Build a Nearrest Neighbours classifier based on the training set X_training, y_training.
 
@@ -130,12 +129,15 @@ def build_NearrestNeighbours_classifier(X_training, y_training):
     @return
 	clf : the classifier built in this function
     '''
-    ##         "INSERT YOUR CODE HERE"    
-    raise NotImplementedError()
+    ##         "INSERT YOUR CODE HERE"
+    
+    knn_clf = KNeighborsClassifier(n_neighbors = numberOfNeighbors)
+    knn_clf = knn_clf.fit(X_training, y_training)
+    return knn_clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def build_SupportVectorMachine_classifier(X_training, y_training):
+def build_SupportVectorMachine_classifier(X_training, y_training, box_Constraint):
     '''  
     Build a Support Vector Machine classifier based on the training set X_training, y_training.
 
@@ -147,7 +149,10 @@ def build_SupportVectorMachine_classifier(X_training, y_training):
 	clf : the classifier built in this function
     '''
     ##         "INSERT YOUR CODE HERE"    
-    raise NotImplementedError()
+    
+    svm_clf = svm.SVC(C = box_Constraint, gamma = 'scale', random_state = 8)
+    svm_clf = svm_clf.fit(X_training, y_training)
+    return svm_clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -165,56 +170,13 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 	clf : the classifier built in this function
     '''
     ##         "INSERT YOUR CODE HERE"    
-    
-    #TESTING PARAMETERS
-    iterations = 100 # max iterations on MLP
-    
-    
-    
-    # Load the dataset
-    X , y = X_training, y_training
-    
-    # Split training set initially by %20
-    X_train, X_test, y_train, y_test = train_test_split(X,y, test_size =(0.20), random_state =1)
-    
-    # Preprocess data
-    scaler = StandardScaler()
-    scaler.fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    # Set a range of hidden layer values to cross-validate over
-    hidden_layers_list = [(10,10),(30,20),(50,50),(20,20)]
-    mlp = MLPClassifier(hidden_layer_sizes = hidden_layers_list,max_iter=iterations, verbose = True, random_state = 1)
-    #Set parameters list to grid seach 
-    parameters = {'hidden_layer_sizes':hidden_layers_list}
-    clf = GridSearchCV(mlp, parameters, scoring = "accuracy")
-   
-    #Fit to training data
-    clf.fit(X_train_scaled,y_train)
-    
-    #Get predictions from model and ouput reports
-    y_pred = clf.predict(X_test_scaled)
-    matrix = confusion_matrix(y_test, y_pred)
-    best_params = clf.best_params_
-    tp,fn,fp,tn = matrix.ravel()
-    
-    #Print Results
-    print("\nConfusion Matrix \n",matrix)
-    print("Classification Report \n", classification_report(y_test, y_pred))
-    print("Best Hidden Layer Parmeter", best_params)
-    print("True Positve\n",tp,  " \nFalse Negative\n",fn,"\nFalse Positive\n", fp,"\nTrue Negative\n",tn)
-    print("Total Accuracy",(tn+tp)*100/(tp+tn+fp+fn))
-    print("Total Precision", tp*100/(tp+fp))
-  
-   
-    
+    raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     ## AND OTHER FUNCTIONS TO COMPLETE THE EXPERIMENTS
     ##         "INSERT YOUR CODE HERE"    
-  
+    raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -225,9 +187,8 @@ if __name__ == "__main__":
     # Call your functions here
 
     ##         "INSERT YOUR CODE HERE"    
-    #print(my_team())
-    X, y = prepare_dataset('medical_records.data')
-    build_NeuralNetwork_classifier(X,y)
- 
+    my_team()
+    #prepare_dataset()
+    
 
 
