@@ -23,6 +23,7 @@ from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 import csv
 import matplotlib.pyplot as plt
+from sklearn import metrics
 from sklearn.metrics import confusion_matrix, classification_report
 
 
@@ -219,8 +220,212 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     ## AND OTHER FUNCTIONS TO COMPLETE THE EXPERIMENTS
-    ##         "INSERT YOUR CODE HERE"    
-  
+    ##         "INSERT YOUR CODE HERE"  
+    
+def knnErrors( X_data, y_data, Optimal_K ):
+    '''
+    Determine the accuracy of predicting X_data with a K Nearest Neighbor 
+    Classifier trained with most optimal number of neighbors
+    
+
+    Parameters
+    ----------
+    X_data : Data to be predicted
+    y_data : Target class values
+    Optimal_K : Most Optimal value of K
+
+    Returns
+    -------
+    scoreAccuracy: Number representing the accuracy of the trainer on X_data and y_data
+
+    '''
+    # Build KNN Classifier with an optimal value of K 
+    knn_clf = build_NearrestNeighbours_classifier( X_training, y_training, numberOfNeighbors = Optimal_K )
+    
+    # Predict X_data using build classifier and store it in variable y_pred
+    y_pred = knn_clf.predict( X_data ) 
+    
+    # Calculate Score of Accuracy by taking difference between targeted value and predicted value
+    scoreAccuracy = metrics.accuracy_score( y_data, y_pred )
+    
+    # Return Value of Score Accuracy
+    return scoreAccuracy
+    
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        
+def svmErrors(X_data, y_data, C):
+    '''
+    
+    Determine the accuracy of predicting X_data with a Support Vector Machine 
+    Classifier with the most optimal C value
+
+    Parameters
+    ----------
+    X_data : Data to be predicted
+    y_data : Target class values
+    C: Most Optimal value of C
+
+    Returns
+    -------
+    scoreAccuracy: Number representing the accuracy of the trainer on X_data and y_data
+
+
+    '''
+    # Build SVM Classifier with an optimal value of C 
+    svm_clf = build_SupportVectorMachine_classifier( X_training, y_training, boxConstraint = C )
+    
+    # Predict X_data using build classifier and store it in variable y_pred
+    y_pred = svm_clf.predict( X_data )
+    
+    # Calculate Score of Accuracy by taking difference between targeted value and predicted value
+    scoreAccuracy = metrics.accuracy_score( y_data, y_pred )
+    
+    # Return Value of Score Accuracy
+    return scoreAccuracy
+    
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        
+def knnTests(X_data, y_data, neighbours):
+    
+    '''
+    
+    Determine the most optimal number of neighbours for K Nearest Neighbour Classifier
+    which classifies the training data with least Mean Sqaured Error (MSE)
+
+    @param 
+	X_data: 30 Features data for each record 
+	y_data: Target label for each record
+
+    @return
+	optimal_K : number representing the most optimal value for number of neighbours
+    
+    '''
+    
+    # Initialising an empty array to store Mean Squared Errors
+    MSE = []
+    
+    # Loop over given array to calcukate Cross Val Score and MSE for each trained model with different number of neighbors
+    for k in neighbours:
+        
+        # Build KNN classifier
+        knn = build_NearrestNeighbours_classifier( X_training, y_training, numberOfNeighbors = k ) 
+        
+        # Calculate Cross Val Score
+        scores = cross_val_score( knn, X_data, y_data, cv = 5, scoring = 'accuracy' )
+        
+        # Calculate MSE from Cross Val Score
+        MSE.append( 1 - scores.mean() )
+        
+    # Find where MSE is minimum    
+    minIndexMSE = MSE.index(min(MSE)) 
+    
+    # Find corresponding Neighbour value
+    optimal_K = neighbours[minIndexMSE]
+    
+    print ("The optimal number of neighbours is %d" % optimal_K)
+    neighbours = list(neighbours)
+    
+    
+    #Plot MSE vs Neighbor
+    plt.plot(neighbours, MSE)
+    plt.xlabel('Number of Neighbours K')
+    plt.ylabel('Misclassification Error')
+    plt.show()
+    
+    # Return Optimal number of Neighbours
+    return optimal_K
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def svmTests(X_data, y_data, cValues):
+    
+    '''
+    Determine the most optimal value of C for Support Vector Machine Classifier
+    which classifies the training data with least Mean Sqaured Error (MSE)
+
+    @param 
+	X_data: 30 Features data for each record 
+	y_data: Target label for each record
+
+    @return
+	optimal_C : number representing the most optimal C Value
+    
+    '''
+    
+    #Initialising empty array to store Mean Squared Errors
+    MSE = []
+    
+    # Loop over given array to calcukate Cross Val Score and MSE for each trained model with different C value
+    for i in cValues:
+        
+        # Build SVM classifier
+        clf = build_SupportVectorMachine_classifier(X_training, y_training, parameter_C = i )
+        
+        # Calculate Cross Val Score
+        scores = cross_val_score(clf, X_data, y_data, cv=5)
+        
+        # Calculate MSE from Cross Val Score
+        MSE.append(1- scores.mean()) 
+        
+    # Find where MSE is minimum
+    minIndexMSE = MSE.index(min(MSE)) 
+    
+    # Find corresponding C value
+    optimal_C = cValues[minIndexMSE]
+    print ("The optimal value of C for training data is %d" % optimal_C)
+    plt.plot(cValues, MSE)
+    plt.xlabel('Parameter C Value')
+    plt.ylabel('Misclassification Error')
+    plt.show()
+    
+    # Return Optimal C value
+    return optimal_C 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+def NearestNeighbours():
+    '''
+    Performs tests for Nearest Neighbors Classifier to evaluate best number of neighbours
+    and report errors and accuracy on it.
+    '''
+    print ( "------------------------------------------------------" )
+    print ( "------------------------------------------------------" )
+    print ( "Training Data Graph for KNN Classifier" )
+    optimalNumberOfNeighbours = knnTests ( X_training, y_training, neighbours )
+    print ( "Accuracy on Training Data with optimal number of neighbours: " + str ( knnErrors ( X_training, y_training, optimalNumberOfNeighbours ) * 100) + "%" )
+    print ( "Accuracy on Test Data with optimal number of neighbours: " + str ( knnErrors ( X_testing, y_testing, optimalNumberOfNeighbours) * 100 ) + "%" )
+    print ( "Accuracy on Validation Data with optimal number of neighbors: " + str(knnErrors(X_validation, y_validation, optimalNumberOfNeighbours ) * 100) + "%" )
+    print ( "------------------------------------------------------" )
+    print ( "------------------------------------------------------" )
+    print ( "Error on Training Data with optimal number of neighbors: " + str ( 100 - knnErrors ( X_training, y_training, optimalNumberOfNeighbours ) * 100 ) + "%" )
+    print ( "Error on Test Data with optimal number of neighbors: " + str ( 100 - knnErrors ( X_testing, y_testing, optimalNumberOfNeighbours ) * 100 ) + "%" )
+    print ( "Error on Validation Data with optimal number of neighbors: " + str ( 100 - knnErrors ( X_validation, y_validation, optimalNumberOfNeighbours ) * 100 ) + "%" )
+    print ( "" )
+    print ( "" )
+    print ( "" )
+        
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+def SVM():
+    '''
+    Performs tests for SVM Classifier to evaluate best value of C
+    and report errors and accuracy on it.
+    '''
+    print ( "------------------------------------------------------" )
+    print ( "------------------------------------------------------" )
+    print ( "Training Data Graph for SVM CLassifier" )
+    boxConstraint = svmTests( X_training, y_training, cValues )
+    print ( "Accuracy on Training Data with optimal value of C: " + str ( svmErrors ( X_training, y_training, boxConstraint ) * 100 ) + "%" )
+    print ( "Accuracy on Test Data with optimal value of C: " + str ( svmErrors ( X_testing, y_testing, boxConstraint ) * 100 ) + "%" )
+    print ( "Accuracy on Validation Data with optimal value of C: " + str ( svmErrors ( X_validation, y_validation, boxConstraint ) * 100 ) + "%" )
+    print ( "------------------------------------------------------" )
+    print ( "------------------------------------------------------" )
+    print ( "Error on Training Data with optimal value of C: " + str ( 100 - svmErrors ( X_training, y_training, boxConstraint ) * 100 ) + "%" )
+    print ( "Error on Test Data with optimal value of C: " + str ( 100 - svmErrors ( X_testing, y_testing, boxConstraint ) * 100 ) + "%" )
+    print ( "Error on Validation Data with optimal value of C: " + str ( 100 - svmErrors ( X_validation, y_validation, boxConstraint ) * 100 ) + "%" )
+    print ( "" )
+    print ( "" )
+    print ( "" )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -233,6 +438,32 @@ if __name__ == "__main__":
     ##         "INSERT YOUR CODE HERE"    
     print( my_team() )
     X, y = prepare_dataset( 'medical_records.data' )
+    X_training, X_testing, y_training, y_testing = train_test_split ( X, y, testing_size = 0.2, shuffle = False, random_state = 1 )
+    X_training, X_validation, y_training, y_validation = train_test_split ( X_training, y_training, testing_size = 0.2, shuffle = False, random_state = 1 )
+    
+    
+    # Records considered for each dataset
+    
+    print ( "Number of records for training : " + str ( X_training.shape [ 0 ] ) )
+    print()
+    print()
+    print ("Number of records for testing : " + str ( X_testing.shape [ 0 ] ) )
+    print()
+    print()
+    print ("Number of records for validation : " + str ( X_validation.shape [ 0 ] ) )
+    print()
+    print()
+    
+    
+    # Neighbours array for KNN Classifier
+    neighbours = [ 1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 43, 55 ] 
+    
+    # C Values for SVM CLassifier
+    cValues = np.arange ( 1, 50, 0.5 ) 
+    
+    NearestNeighbours()
+    SVM()
+    
     build_NeuralNetwork_classifier( X, y )
  
 
