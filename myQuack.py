@@ -469,7 +469,6 @@ if __name__ == "__main__":
     decision_tree_y_pred = decision_tree_clf.predict(X_testing)
     decision_tree_score = metrics.accuracy_score(y_testing, decision_tree_y_pred)
     print(decision_tree_score)
-    """
     
     # Neighbours array for KNN Classifier
     neighbours = [ 1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 43, 55 ] 
@@ -481,6 +480,5 @@ if __name__ == "__main__":
     SVM()
     
     build_NeuralNetwork_classifier( X, y )
-    """
 
 
