@@ -14,6 +14,7 @@ You are welcome to use the pandas library if you know it.
 '''
 import time
 import numpy as np
+import sklearn as sk
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
@@ -115,8 +116,21 @@ def build_DecisionTree_classifier( X_training, y_training ):
     @return
 	clf : the classifier built in this function
     '''
-    ##         "INSERT YOUR CODE HERE"    
-    raise NotImplementedError()
+
+    clf_unrestrained = DecisionTreeClassifier(random_state=0)
+    clf_unrestrained.fit(X_training, y_training)
+    depth_max = clf_unrestrained.get_depth()
+
+    parameters = {'max_depth':list(range(1,depth_max))}
+
+    search = GridSearchCV(DecisionTreeClassifier(), parameters, scoring='f1_macro', cv=4)
+    search.fit(X_training, y_training)
+    best_depth = search.best_params_['max_depth']
+
+    clf = DecisionTreeClassifier(max_depth=best_depth, random_state=0)
+    clf.fit(X_training, y_training)
+
+    return clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -434,26 +448,28 @@ if __name__ == "__main__":
     # Write a main part that calls the different 
     # functions to perform the required tasks and repeat your experiments.
     # Call your functions here
-
-    ##         "INSERT YOUR CODE HERE"    
+    
     print( my_team() )
     X, y = prepare_dataset( 'medical_records.data' )
-    X_training, X_testing, y_training, y_testing = train_test_split ( X, y, testing_size = 0.2, shuffle = False, random_state = 1 )
-    X_training, X_validation, y_training, y_validation = train_test_split ( X_training, y_training, testing_size = 0.2, shuffle = False, random_state = 1 )
+    X_training, X_testing, y_training, y_testing = train_test_split ( X, y, test_size = 0.2, shuffle = False, random_state = 1 )
+    X_training, X_validation, y_training, y_validation = train_test_split ( X_training, y_training, test_size = 0.2, shuffle = False, random_state = 1 )
     
     
     # Records considered for each dataset
     
     print ( "Number of records for training : " + str ( X_training.shape [ 0 ] ) )
     print()
-    print()
     print ("Number of records for testing : " + str ( X_testing.shape [ 0 ] ) )
-    print()
     print()
     print ("Number of records for validation : " + str ( X_validation.shape [ 0 ] ) )
     print()
-    print()
-    
+
+    # decision tree
+    decision_tree_clf = build_DecisionTree_classifier( X_training, y_training )
+    decision_tree_y_pred = decision_tree_clf.predict(X_testing)
+    decision_tree_score = metrics.accuracy_score(y_testing, decision_tree_y_pred)
+    print(decision_tree_score)
+    """
     
     # Neighbours array for KNN Classifier
     neighbours = [ 1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 43, 55 ] 
@@ -465,6 +481,6 @@ if __name__ == "__main__":
     SVM()
     
     build_NeuralNetwork_classifier( X, y )
- 
+    """
 
 
