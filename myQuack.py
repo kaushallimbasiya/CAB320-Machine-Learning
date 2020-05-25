@@ -94,14 +94,7 @@ def prepare_dataset( dataset_path ):
             
         X = np.asarray ( X )
         y = np.asarray ( y )
-        return X, y #return X and y
-    
-                
-                
-                
-                
-                
-                
+        return X, y #return X and y        
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -121,20 +114,19 @@ def build_DecisionTree_classifier( X_training, y_training ):
     clf_unrestrained.fit(X_training, y_training)
     depth_max = clf_unrestrained.get_depth()
 
-    parameters = {'max_depth':list(range(1,depth_max))}
+    params = {'max_depth': list(range(1,depth_max))}
 
-    search = GridSearchCV(DecisionTreeClassifier(), parameters, scoring='f1_macro', cv=4)
+    search = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1_macro', cv=4)
     search.fit(X_training, y_training)
     best_depth = search.best_params_['max_depth']
 
     clf = DecisionTreeClassifier(max_depth=best_depth, random_state=0)
     clf.fit(X_training, y_training)
-
     return clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def build_NearrestNeighbours_classifier( X_training, y_training, numberOfNeighbors ):
+def build_NearrestNeighbours_classifier( X_training, y_training ):
     '''  
     Build a Nearrest Neighbours classifier based on the training set X_training, y_training.
 
@@ -144,12 +136,16 @@ def build_NearrestNeighbours_classifier( X_training, y_training, numberOfNeighbo
 
     @return
 	clf : the classifier built in this function
-    '''
-    ##         "INSERT YOUR CODE HERE"    
+    ''' 
     
-    knn_clf = KNeighborsClassifier( n_neighbors = numberOfNeighbors )
-    knn_clf = knn_clf.fit( X_training, y_training )
-    return knn_clf
+    params = {'n_neighbors': [ 1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 43, 55 ] } 
+
+    search = GridSearchCV(KNeighborsClassifier(), params, scoring='f1_macro', cv=4)
+    search.fit( X_training, y_training )
+
+    clf = KNeighborsClassifier( n_neighbors = search.best_params_['n_neighbors'] )
+    clf = clf.fit( X_training, y_training )
+    return clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -163,8 +159,7 @@ def build_SupportVectorMachine_classifier(X_training, y_training, boxConstraint)
 
     @return
 	clf : the classifier built in this function
-    '''
-    ##         "INSERT YOUR CODE HERE"    
+    ''' 
     
     svm_clf = svm.SVC( C = boxConstraint, gamma = 'scale', random_state = 8 )
     svm_clf = svm_clf.fit( X_training, y_training )
