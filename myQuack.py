@@ -229,25 +229,29 @@ def split_dataset(X, y):
     X_training, X_validation, y_training, y_validation = train_test_split(X_training, y_training, test_size = 0.2, shuffle = False, random_state = 1)
     return ((X_training, y_training), (X_validation, y_validation),(X_testing, y_testing))
 
-def evaluate_classifier_test(classifier, X_test, y_test):
+def evaluate_classifier_test(classifier, X_testing, y_testing):
     '''
     Evaluates classifier on test data set
     '''
-    #TODO
-    pass
+    y_pred = classifier['clf'].predict(X_testing)
+    score = metrics.accuracy_score(y_testing, y_pred)
+    print("Testing accuracy on {}:\t{}\n".format(classifier['name'], score))
 
 def report(classifiers, datasets):
     '''
     Generates a report comparing the classifiers
     '''
+    datasets_str = '\t\t\t'
+    for d in datasets:
+        datasets_str += d['name'] + '\t\t'
+    print(datasets_str)
     for c in classifiers:
-        print(c["name"])
+        clf_str = c['name'] + '\t'
         for d in datasets:
             y_pred = c['clf'].predict(d['X'])
             score = metrics.accuracy_score(d['y'], y_pred)
-            print(d["name"] + " ")
-            print(score)
-        print()
+            clf_str += '{}\t'.format(score)
+        print(clf_str + '\n')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -276,11 +280,15 @@ if __name__ == "__main__":
     #neural_network_clf = build_NeuralNetwork_classifier(X_training, y_training)
 
     classifiers = [
-        {"name": "Decision Tree", "clf": decision_tree_clf},
-        {"name": "Nearest Neighbours", "clf": nearest_neighbours_clf},
+        {"name": "Decision Tree         ", "clf": decision_tree_clf},
+        {"name": "Nearest Neighbours    ", "clf": nearest_neighbours_clf},
         {"name": "Support Vector Machine", "clf": support_vector_machine_clf},
-        #{"name": "Neural Network", "clf": neural_network_clf},
+        #{"name": "Neural Network        ", "clf": neural_network_clf},
     ]
+
+    # test performance
+    for classifier in classifiers:
+        evaluate_classifier_test(classifier, X_testing, y_testing)
 
     # generate report
     report(classifiers, datasets)
