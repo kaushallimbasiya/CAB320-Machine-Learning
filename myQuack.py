@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 from sklearn import metrics
 from sklearn.metrics import confusion_matrix, classification_report
 
+cv_num = 3 # cross validation number
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -60,45 +61,21 @@ def prepare_dataset( dataset_path ):
     @return
 	X,y
     '''
-    def get_size ( filename ):
-        F = open ( filename, 'r' )
-        line = F.readline ()
-        array = line.split ( ',' )
-        column_number = len ( array )
-        with open ( filename ) as F:
-                for i, l in enumerate ( F ):
-                    pass
-        return i + 1, column_number
-    
-    rows,columns = get_size ( dataset_path )
-    F = open( dataset_path, 'r' )
-    if ( F.mode == 'r' ):
-        numberOfAttributes = columns - 2 #ignore ID and Y label columns for learners (first 2)
-        numberOfObservations = rows
-        #create empty numpy arrays
-        X = np.zeros ( [ numberOfObservations, numberOfAttributes ] )
-        y = np.zeros ( numberOfObservations )
-        y = y.astype ( np.uint8 )
-        #read each line and store it in the array
-        for i in range ( 0, numberOfObservations ):
-            contents = F.readline ()
-            data = contents.strip ( '\n' )
-            Array = data.split ( ',' )
-            #if result is 'M' we set Y label to 1 otherwise leave it as 0
-            if ( ( Array [ 1 ] ) == 'M' ):
-                y [ i ] = 1
-            Array = np.asarray ( Array [ 2: ] )
-            X [ i ] = Array
-            
-        X = np.asarray ( X )
-        y = np.asarray ( y )
-        
-        #Scale X_training Data
-        scaler = StandardScaler()
-        scaler.fit(X)
-        X_train = scaler.transform(X)
-        
-        return X_train, y #return X and y        
+    feature_cols = list(range(2,32))
+    X = np.loadtxt(dataset_path,delimiter=',',dtype=float,usecols=feature_cols)
+    y = np.loadtxt(dataset_path,delimiter=',',dtype=str,usecols=1)
+
+    # scale X
+    scaler = StandardScaler()
+    scaler.fit(X)
+    X = scaler.transform(X)
+
+    # convert y to int
+    y[y == 'B'] = 0
+    y[y == 'M'] = 1
+    y = y.astype(int)
+
+    return X, y     
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -120,7 +97,7 @@ def build_DecisionTree_classifier( X_training, y_training ):
 
     params = {'max_depth': list(range(1,depth_max))}
 
-    clf = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1_macro', cv=4)
+    clf = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1_macro', cv=cv_num)
     clf.fit(X_training, y_training)
     return clf
 
@@ -138,9 +115,9 @@ def build_NearrestNeighbours_classifier( X_training, y_training ):
 	clf : the classifier built in this function
     ''' 
     
-    params = {'n_neighbors': [ 1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 43, 55 ] } 
+    params = {'n_neighbors': range(1, 100) } 
 
-    clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1_macro', cv=4)
+    clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1_macro', cv=cv_num)
     clf.fit( X_training, y_training )
     return clf
 
@@ -161,7 +138,7 @@ def build_SupportVectorMachine_classifier(X_training, y_training):
     params = {'C': list(np.arange( 1, 50, 0.5 ))}
 
     svm_clf = svm.SVC(gamma = 'scale', random_state = 0)
-    clf = GridSearchCV(svm_clf, params, scoring='f1_macro', cv=4)
+    clf = GridSearchCV(svm_clf, params, scoring='f1_macro', cv=cv_num)
     clf.fit(X_training, y_training) 
     return clf
 
@@ -182,20 +159,22 @@ def build_NeuralNetwork_classifier(X_training, y_training):
     '''  
     
     #TESTING PARAMETERS
-    iterations = 150 # max iterations on MLP
-        
-    # Set a range of hidden layer values to cross-validate over
-    hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
     
-    
-    mlp = MLPClassifier( hidden_layer_sizes = hidden_layers_list,max_iter=iterations, verbose = False, random_state = 1 )
+    mlp = MLPClassifier( max_iter=300, verbose = False, random_state = 0 )
     
     #Set parameters list to grid seach 
-    params = { 'hidden_layer_sizes':hidden_layers_list }
-    clf = GridSearchCV( mlp, params, scoring = 'f1_macro', cv=4 , n_jobs= -1)
+
+    # Set a range of hidden layer values to cross-validate over
+    #hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
+    #params = { 'hidden_layer_sizes': hidden_layers_list }
+
+    params = {'hidden_layer_sizes': range(1, 100, 5)}
+
+    clf = GridSearchCV( mlp, params, scoring = 'f1_macro', cv=cv_num , n_jobs= -1)
    
     #Fit to training data
     clf.fit( X_training, y_training )
+    print(clf.best_estimator_.hidden_layer_sizes)
     return clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
