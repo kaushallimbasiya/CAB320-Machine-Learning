@@ -92,7 +92,13 @@ def prepare_dataset( dataset_path ):
             
         X = np.asarray ( X )
         y = np.asarray ( y )
-        return X, y #return X and y        
+        
+        #Scale X_training Data
+        scaler = StandardScaler()
+        scaler.fit(X)
+        X_train = scaler.transform(X)
+        
+        return X_train, y #return X and y        
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -173,50 +179,23 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 
     @return
 	clf : the classifier built in this function
-    '''
-    ##         "INSERT YOUR CODE HERE"    
+    '''  
     
     #TESTING PARAMETERS
-    iterations = 100 # max iterations on MLP
-    
-    
-    
-    # Load the dataset
-    X , y = X_training, y_training
-    
-    # Split training set initially by %20
-    X_train, X_test, y_train, y_test = train_test_split( X, y, test_size =(0.20), random_state =1 )
-    
-    # Preprocess data
-    scaler = StandardScaler()
-    scaler.fit( X_train )
-    X_train_scaled = scaler.transform( X_train )
-    X_test_scaled = scaler.transform( X_test )
-    
+    iterations = 150 # max iterations on MLP
+        
     # Set a range of hidden layer values to cross-validate over
     hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
-    mlp = MLPClassifier( hidden_layer_sizes = hidden_layers_list,max_iter=iterations, verbose = True, random_state = 1 )
+    
+    
+    mlp = MLPClassifier( hidden_layer_sizes = hidden_layers_list,max_iter=iterations, verbose = False, random_state = 1 )
+    
     #Set parameters list to grid seach 
-    parameters = { 'hidden_layer_sizes':hidden_layers_list }
-    clf = GridSearchCV( mlp, parameters, scoring = "accuracy" )
+    params = { 'hidden_layer_sizes':hidden_layers_list }
+    clf = GridSearchCV( mlp, params, scoring = 'f1_macro', cv=4 , n_jobs= -1)
    
     #Fit to training data
-    clf.fit( X_train_scaled, y_train )
-    
-    #Get predictions from model and ouput reports
-    y_pred = clf.predict( X_test_scaled )
-    matrix = confusion_matrix( y_test, y_pred )
-    best_params = clf.best_params_
-    tp,fn,fp,tn = matrix.ravel()
-    
-    #Print Results
-    print( "\nConfusion Matrix \n", matrix )
-    print( "Classification Report \n", classification_report( y_test, y_pred ) )
-    print( "Best Hidden Layer Parmeter", best_params )
-    print( "True Positve\n",tp,  " \nFalse Negative\n", fn, "\nFalse Positive\n", fp, "\nTrue Negative\n", tn )
-    print( "Total Accuracy", ( tn + tp ) * 100 / ( tp + tn + fp + fn ) )
-    print( "Total Precision", tp * 100 / ( tp + fp ) )
-
+    clf.fit( X_training, y_training )
     return clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -277,13 +256,13 @@ if __name__ == "__main__":
     decision_tree_clf = build_DecisionTree_classifier(X_training, y_training)
     nearest_neighbours_clf = build_DecisionTree_classifier(X_training, y_training)
     support_vector_machine_clf = build_SupportVectorMachine_classifier(X_training, y_training)
-    #neural_network_clf = build_NeuralNetwork_classifier(X_training, y_training)
+    neural_network_clf = build_NeuralNetwork_classifier(X_training, y_training)
 
     classifiers = [
         {"name": "Decision Tree         ", "clf": decision_tree_clf},
         {"name": "Nearest Neighbours    ", "clf": nearest_neighbours_clf},
         {"name": "Support Vector Machine", "clf": support_vector_machine_clf},
-        #{"name": "Neural Network        ", "clf": neural_network_clf},
+        {"name": "Neural Network        ", "clf": neural_network_clf},
     ]
 
     # test performance
