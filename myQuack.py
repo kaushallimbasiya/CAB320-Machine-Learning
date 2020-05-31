@@ -12,20 +12,21 @@ You are strongly encourage to use functions of the numpy, sklearn and tensorflow
 You are welcome to use the pandas library if you know it.
 
 '''
+
+import csv
 import time
 import numpy as np
 import sklearn as sk
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score, GridSearchCV
-from sklearn.preprocessing import StandardScaler
-import csv
-import matplotlib.pyplot as plt
 from sklearn import metrics
 from sklearn.metrics import confusion_matrix, classification_report
+import matplotlib.pyplot as plt
 
 cv_num = 3 # cross validation number
 
@@ -61,7 +62,7 @@ def prepare_dataset( dataset_path ):
     @return
 	X,y
     '''
-    feature_cols = list(range(2,32))
+    feature_cols = list(range(2,32)) # features are on cols index 2 to 31
     X = np.loadtxt(dataset_path,delimiter=',',dtype=float,usecols=feature_cols)
     y = np.loadtxt(dataset_path,delimiter=',',dtype=str,usecols=1)
 
@@ -90,7 +91,7 @@ def build_DecisionTree_classifier( X_training, y_training ):
     @return
 	clf : the classifier built in this function
     '''
-
+    # use unrestrained clf to get upper bound of max_depth
     clf_unrestrained = DecisionTreeClassifier(random_state=0)
     clf_unrestrained.fit(X_training, y_training)
     depth_max = clf_unrestrained.get_depth()
@@ -113,8 +114,7 @@ def build_NearrestNeighbours_classifier( X_training, y_training ):
 
     @return
 	clf : the classifier built in this function
-    ''' 
-    
+    '''
     params = {'n_neighbors': range(1, 100) } 
 
     clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1_macro', cv=cv_num)
@@ -133,11 +133,11 @@ def build_SupportVectorMachine_classifier(X_training, y_training):
 
     @return
 	clf : the classifier built in this function
-    ''' 
-    
+    '''
     params = {'C': list(np.arange( 1, 50, 0.5 ))}
 
     svm_clf = svm.SVC(gamma = 'scale', random_state = 0)
+
     clf = GridSearchCV(svm_clf, params, scoring='f1_macro', cv=cv_num)
     clf.fit(X_training, y_training) 
     return clf
@@ -156,25 +156,20 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 
     @return
 	clf : the classifier built in this function
-    '''  
-    
-    #TESTING PARAMETERS
-    
-    mlp = MLPClassifier( max_iter=300, verbose = False, random_state = 0 )
-    
-    #Set parameters list to grid seach 
-
+    '''
     # Set a range of hidden layer values to cross-validate over
-    #hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
-    #params = { 'hidden_layer_sizes': hidden_layers_list }
+    hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
+    params = { 'hidden_layer_sizes': hidden_layers_list }
 
-    params = {'hidden_layer_sizes': range(1, 100, 5)}
+    # alt params
+    #params = {'hidden_layer_sizes': range(1, 100, 5)}
 
-    clf = GridSearchCV( mlp, params, scoring = 'f1_macro', cv=cv_num , n_jobs= -1)
-   
+    mlp_clf = MLPClassifier(max_iter=150, verbose = False, random_state = 0, tol=0.001)
+
+    clf = GridSearchCV(mlp_clf, params, scoring = 'f1_macro', cv=cv_num , n_jobs= -1)
+
     #Fit to training data
-    clf.fit( X_training, y_training )
-    print(clf.best_estimator_.hidden_layer_sizes)
+    clf.fit(X_training, y_training)
     return clf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -182,27 +177,51 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 def split_dataset(X, y):
     '''
     Splits X and y into training, validation and testing sets in tuple form
+
+    @param 
+	X: X[i,:] is the ith example
+	y: y[i] is the class label of X[i,:]
     '''
+    # split data into training and test
     X_training, X_testing, y_training, y_testing = train_test_split(X, y, test_size = 0.2, shuffle = False, random_state = 1)
+    
+    # further split training data into training and validation
     X_training, X_validation, y_training, y_validation = train_test_split(X_training, y_training, test_size = 0.2, shuffle = False, random_state = 1)
-    return ((X_training, y_training), (X_validation, y_validation),(X_testing, y_testing))
+    
+    return ((X_training, y_training), (X_validation, y_validation), (X_testing, y_testing))
 
 def evaluate_classifier_test(classifier, X_testing, y_testing):
     '''
     Evaluates classifier on test data set
+
+    @param 
+    classifier: dict with classifier name and clf
+	X_training: X_training[i,:] is the ith example
+	y_training: y_training[i] is the class label of X_training[i,:]
     '''
+    # predict on test data
     y_pred = classifier['clf'].predict(X_testing)
+
+    # score on the expected result
     score = metrics.accuracy_score(y_testing, y_pred)
+
     print("Testing accuracy on {}:\t{}\n".format(classifier['name'], score))
 
 def report(classifiers, datasets):
     '''
     Generates a report comparing the classifiers
+
+    @param 
+    classifiers: list of dict with classifier name and clf
+    datasets: list of dict with dataset name and clf
     '''
+    # header with dataset names
     datasets_str = '\t\t\t'
     for d in datasets:
         datasets_str += d['name'] + '\t\t'
     print(datasets_str)
+
+    # print the results for each classifier
     for c in classifiers:
         clf_str = c['name'] + '\t'
         for d in datasets:
@@ -219,7 +238,7 @@ if __name__ == "__main__":
     # prepare data
     X, y = prepare_dataset('medical_records.data')
 
-    ((X_training, y_training), (X_validation, y_validation),(X_testing, y_testing)) = split_dataset(X, y)
+    ((X_training, y_training), (X_validation, y_validation), (X_testing, y_testing)) = split_dataset(X, y)
 
     print ("Number of records for training : " + str(X_training.shape[0]))
     print ("Number of records for testing : " + str(X_testing.shape[0]))
