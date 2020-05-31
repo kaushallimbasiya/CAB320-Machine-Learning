@@ -198,20 +198,24 @@ def graph_cv_results(classifier):
     @param 
     classifier: dict with classifier name and clf
     '''
-    params = []
+    param_vals = []
     param_name = ''
     for param in classifier['clf'].cv_results_['params']:
         for name,val in param.items():
             param_name = name
-            params.append(str(val))
+            param_vals.append(str(val))
+
     scores = classifier['clf'].cv_results_['mean_test_score']
+
+    # create a plot
     _, ax = plt.subplots()
-    ax.plot(params, scores)
+    ax.plot(param_vals, scores)
+
+    # styling and labels
     ax.set_xlabel(param_name, fontsize=16)
     ax.set_ylabel('Accuracy', fontsize=16)
     ax.grid('on')
     ax.xaxis.set_major_locator(plt.MaxNLocator(10))
-
     plt.show()
 
 def evaluate_classifier_test(classifier, X_testing, y_testing):
@@ -265,9 +269,9 @@ if __name__ == "__main__":
 
     ((X_training, y_training), (X_validation, y_validation), (X_testing, y_testing)) = split_dataset(X, y)
 
-    print ("Number of records for training : " + str(X_training.shape[0]))
-    print ("Number of records for testing : " + str(X_testing.shape[0]))
-    print ("Number of records for validation : " + str(X_validation.shape[0]))
+    #print ("Number of records for training : " + str(X_training.shape[0]))
+    #print ("Number of records for testing : " + str(X_testing.shape[0]))
+    #print ("Number of records for validation : " + str(X_validation.shape[0]))
 
     datasets = [
         {"name": "Training", "X": X_training, "y": y_training},
@@ -289,11 +293,12 @@ if __name__ == "__main__":
     ]
     
     for classifier in classifiers:
+        pass
         # graph cross validator results
-        graph_cv_results(classifier)
+        #graph_cv_results(classifier)
 
         # test performance
-        evaluate_classifier_test(classifier, X_testing, y_testing)
+        #evaluate_classifier_test(classifier, X_testing, y_testing)
 
     # generate report
     report(classifiers, datasets)
