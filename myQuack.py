@@ -96,6 +96,7 @@ def build_DecisionTree_classifier( X_training, y_training ):
     clf_unrestrained.fit(X_training, y_training)
     depth_max = clf_unrestrained.get_depth()
 
+    # hyperparameter to cross validate
     params = {'max_depth': list(range(1,depth_max))}
 
     clf = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1', cv=cv_num)
@@ -115,6 +116,7 @@ def build_NearrestNeighbours_classifier( X_training, y_training ):
     @return
 	clf : the classifier built in this function
     '''
+    # hyperparameter to cross validate
     params = {'n_neighbors': range(1, 100) } 
 
     clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1', cv=cv_num)
@@ -134,6 +136,7 @@ def build_SupportVectorMachine_classifier(X_training, y_training):
     @return
 	clf : the classifier built in this function
     '''
+    # hyperparameter to cross validate
     params = {'C': list(np.arange( 1, 50, 0.5 ))}
 
     svm_clf = svm.SVC(gamma = 'scale', random_state = 0)
@@ -157,7 +160,7 @@ def build_NeuralNetwork_classifier(X_training, y_training):
     @return
 	clf : the classifier built in this function
     '''
-    # Set a range of hidden layer values to cross-validate over
+    # hyperparameter to cross validate
     hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
     params = { 'hidden_layer_sizes': hidden_layers_list }
 
