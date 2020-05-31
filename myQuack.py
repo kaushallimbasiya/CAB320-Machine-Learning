@@ -67,9 +67,7 @@ def prepare_dataset( dataset_path ):
     y = np.loadtxt(dataset_path,delimiter=',',dtype=str,usecols=1)
 
     # scale X
-    scaler = StandardScaler()
-    scaler.fit(X)
-    X = scaler.transform(X)
+    X = StandardScaler().fit_transform(X)
 
     # convert y to int
     y[y == 'B'] = 0
@@ -117,7 +115,7 @@ def build_NearrestNeighbours_classifier( X_training, y_training ):
 	clf : the classifier built in this function
     '''
     # hyperparameter to cross validate
-    params = {'n_neighbors': range(1, 100) } 
+    params = {'n_neighbors': range(1, 50) } 
 
     clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1', cv=cv_num)
     clf.fit( X_training, y_training )
@@ -161,7 +159,7 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 	clf : the classifier built in this function
     '''
     # hyperparameter to cross validate
-    hidden_layers_list = [ ( 10, 10 ), ( 30, 20 ), ( 50, 50 ), ( 20, 20 ) ]
+    hidden_layers_list = [(10, 10), (20, 20), (30, 20), (30, 30), (50, 50)]
     params = { 'hidden_layer_sizes': hidden_layers_list }
 
     # alt params
@@ -209,6 +207,7 @@ def evaluate_classifier_test(classifier, X_testing, y_testing):
     score = metrics.accuracy_score(y_testing, y_pred)
 
     print("Testing accuracy on {}:\t{}\n".format(classifier['name'], score))
+    print(classification_report(y_testing,y_pred))
 
 def report(classifiers, datasets):
     '''
@@ -255,7 +254,7 @@ if __name__ == "__main__":
 
     # classifiers
     decision_tree_clf = build_DecisionTree_classifier(X_training, y_training)
-    nearest_neighbours_clf = build_DecisionTree_classifier(X_training, y_training)
+    nearest_neighbours_clf = build_NearrestNeighbours_classifier(X_training, y_training)
     support_vector_machine_clf = build_SupportVectorMachine_classifier(X_training, y_training)
     neural_network_clf = build_NeuralNetwork_classifier(X_training, y_training)
 
