@@ -98,7 +98,7 @@ def build_DecisionTree_classifier( X_training, y_training ):
 
     params = {'max_depth': list(range(1,depth_max))}
 
-    clf = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1_macro', cv=cv_num)
+    clf = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1', cv=cv_num)
     clf.fit(X_training, y_training)
     return clf
 
@@ -117,7 +117,7 @@ def build_NearrestNeighbours_classifier( X_training, y_training ):
     '''
     params = {'n_neighbors': range(1, 100) } 
 
-    clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1_macro', cv=cv_num)
+    clf = GridSearchCV(KNeighborsClassifier(), params, scoring='f1', cv=cv_num)
     clf.fit( X_training, y_training )
     return clf
 
@@ -138,7 +138,7 @@ def build_SupportVectorMachine_classifier(X_training, y_training):
 
     svm_clf = svm.SVC(gamma = 'scale', random_state = 0)
 
-    clf = GridSearchCV(svm_clf, params, scoring='f1_macro', cv=cv_num)
+    clf = GridSearchCV(svm_clf, params, scoring='f1', cv=cv_num)
     clf.fit(X_training, y_training) 
     return clf
 
@@ -166,7 +166,7 @@ def build_NeuralNetwork_classifier(X_training, y_training):
 
     mlp_clf = MLPClassifier(max_iter=150, verbose = False, random_state = 0, tol=0.001)
 
-    clf = GridSearchCV(mlp_clf, params, scoring = 'f1_macro', cv=cv_num , n_jobs= -1)
+    clf = GridSearchCV(mlp_clf, params, scoring = 'f1', cv=cv_num , n_jobs= -1)
 
     #Fit to training data
     clf.fit(X_training, y_training)
