@@ -92,12 +92,12 @@ def build_DecisionTree_classifier( X_training, y_training ):
     # use unrestrained clf to get upper bound of max_depth
     clf_unrestrained = DecisionTreeClassifier(random_state=0)
     clf_unrestrained.fit(X_training, y_training)
-    depth_max = clf_unrestrained.get_depth()
+    max_depth_max = clf_unrestrained.get_depth()
 
     # hyperparameter to cross validate
-    params = {'max_depth': list(range(1,depth_max))}
+    params = {'max_depth': list(range(1,max_depth_max+1))}
 
-    clf = GridSearchCV(DecisionTreeClassifier(), params, scoring='f1', cv=cv_num)
+    clf = GridSearchCV(DecisionTreeClassifier(random_state=0), params, scoring='f1', cv=cv_num)
     clf.fit(X_training, y_training)
     return clf
 
@@ -191,6 +191,29 @@ def split_dataset(X, y):
     
     return ((X_training, y_training), (X_validation, y_validation), (X_testing, y_testing))
 
+def graph_cv_results(classifier):
+    '''
+    Graphs the cross validation results
+
+    @param 
+    classifier: dict with classifier name and clf
+    '''
+    params = []
+    param_name = ''
+    for param in classifier['clf'].cv_results_['params']:
+        for name,val in param.items():
+            param_name = name
+            params.append(str(val))
+    scores = classifier['clf'].cv_results_['mean_test_score']
+    _, ax = plt.subplots()
+    ax.plot(params, scores)
+    ax.set_xlabel(param_name, fontsize=16)
+    ax.set_ylabel('Accuracy', fontsize=16)
+    ax.grid('on')
+    ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+
+    plt.show()
+
 def evaluate_classifier_test(classifier, X_testing, y_testing):
     '''
     Evaluates classifier on test data set
@@ -207,7 +230,7 @@ def evaluate_classifier_test(classifier, X_testing, y_testing):
     score = metrics.accuracy_score(y_testing, y_pred)
 
     print("Testing accuracy on {}:\t{}\n".format(classifier['name'], score))
-    print(classification_report(y_testing,y_pred))
+    #print(classification_report(y_testing,y_pred))
 
 def report(classifiers, datasets):
     '''
@@ -264,9 +287,12 @@ if __name__ == "__main__":
         {"name": "Support Vector Machine", "clf": support_vector_machine_clf},
         {"name": "Neural Network        ", "clf": neural_network_clf},
     ]
-
-    # test performance
+    
     for classifier in classifiers:
+        # graph cross validator results
+        graph_cv_results(classifier)
+
+        # test performance
         evaluate_classifier_test(classifier, X_testing, y_testing)
 
     # generate report
